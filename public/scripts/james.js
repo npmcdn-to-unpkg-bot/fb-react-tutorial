@@ -15,6 +15,20 @@ var CommentBox = React.createClass({
        }.bind(this)
      });
    },
+   handleCommentSubmit: function(comment) {
+    $.ajax({
+      url: this.props.url,
+      dataType: 'json',
+      type: 'POST',
+      data: comment,
+      success: function(res) {
+        this.setState({data: res});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
    getInitialState: function() {
      return {data: []};
    },
@@ -27,7 +41,7 @@ var CommentBox = React.createClass({
        <div className="commentBox">
          <h1>Comments</h1>
          <CommentList data={this.state.data} />
-         <CommentForm />
+         <CommentForm onCommentSubmit={this.handleCommentSubmit}/>
        </div>
      );
    }
@@ -60,9 +74,19 @@ var CommentForm = React.createClass({
   handleTextChange: function(e) {
     this.setState({text: e.target.value})
   },
+  handleSubmit: function(e) {
+    e.preventDefault();
+    var author = this.state.author.trim();
+    var text= this.state.text.trim();
+    if (!text || !author) {
+      return;
+    }
+    this.props.onCommentSubmit({author: author, text: text});
+    this.setState({author: '', text: ''});
+  },
   render: function() {
     return (
-      <form action="" className="commentForm">
+      <form action="" className="commentForm" onSubmit={this.handleSubmit}>
         <input type="text"
           placeholder="Your name"
           value={this.state.author}
